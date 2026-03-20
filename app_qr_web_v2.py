@@ -1,25 +1,3 @@
-import streamlit as st
-import pandas as pd
-import qrcode
-from reportlab.pdfgen import canvas
-from reportlab.lib.units import cm
-from PIL import Image
-import io
-import tempfile
-
-page_width = 5 * cm
-page_height = 7.5 * cm
-
-
-def generar_codigo(campana, lote, sublote, bloque, planta, zona):
-
-    lote = str(lote).zfill(5)
-    bloque = str(bloque).zfill(2)
-    planta = str(planta).zfill(3)
-
-    return f"{campana}{lote}{sublote}{bloque}{planta}{zona}"
-
-
 def generar_pdf(df):
 
     temp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
@@ -52,30 +30,57 @@ def generar_pdf(df):
 
         img = Image.open(buffer)
 
-        img_width = 3.8 * cm
-        img_height = 3.8 * cm
+        # -------------------------------
+        # 📦 RECUADRO INTERNO
+        # -------------------------------
+        box_width = 4 * cm
+        box_height = 6.3 * cm
 
+        x_box = (page_width - box_width) / 2
+        y_box = (page_height - box_height) / 2
+
+        # Dibujar recuadro
+        c.rect(x_box, y_box, box_width, box_height)
+
+        # -------------------------------
+        # 🔠 TEXTOS SUPERIORES (2 líneas)
+        # -------------------------------
         c.setFont("Helvetica-Bold", 8)
 
         c.drawCentredString(
-            page_width/2,
-            page_height - 0.5*cm,
-            f"{campana} | LOTE: {lote} | SUB-LOTE: {sublote}"
+            page_width / 2,
+            y_box + box_height - 0.6 * cm,
+            f"{campana} | LOTE: {lote}"
         )
+
+        c.drawCentredString(
+            page_width / 2,
+            y_box + box_height - 1.1 * cm,
+            f"SUB-LOTE: {sublote}"
+        )
+
+        # -------------------------------
+        # 🔲 QR
+        # -------------------------------
+        img_width = 3.6 * cm
+        img_height = 3.6 * cm
 
         c.drawInlineImage(
             img,
-            (page_width-img_width)/2,
-            (page_height-img_height)/2 + 0.1*cm,
+            page_width/2 - img_width/2,
+            y_box + (box_height - img_height)/2 - 0.2*cm,
             img_width,
             img_height
         )
 
+        # -------------------------------
+        # 🔻 TEXTO INFERIOR
+        # -------------------------------
         planta_txt = str(planta).zfill(3)
 
         c.drawCentredString(
-            page_width/2,
-            0.6*cm,
+            page_width / 2,
+            y_box + 0.5 * cm,
             f"BLOQUE: {bloque} | N° PLANTA: {planta_txt}"
         )
 
@@ -84,28 +89,3 @@ def generar_pdf(df):
     c.save()
 
     return temp_pdf.name
-
-
-st.title("Generador de QR para Plantas")
-
-archivo = st.file_uploader("Subir archivo Excel", type=["xlsx"])
-
-if archivo:
-
-    df = pd.read_excel(archivo)
-
-    st.write("Vista previa de los datos")
-    st.dataframe(df)
-
-    if st.button("Generar QR"):
-
-        pdf = generar_pdf(df)
-
-        with open(pdf, "rb") as f:
-
-            st.download_button(
-                "Descargar PDF",
-                f,
-                file_name="QR_PLANTAS.pdf",
-                mime="application/pdf"
-            )
