@@ -8,7 +8,7 @@ import io
 import tempfile
 
 page_width = 5 * cm
-page_height = 7 * cm
+page_height = 7.5 * cm
 
 
 def generar_codigo(campana, lote, sublote, bloque, planta, zona):
