@@ -59,18 +59,24 @@ def generar_pdf(df):
         buffer.seek(0)
 
         img = Image.open(buffer)
-        
+
         # -------------------------------
         # 📦 RECUADRO INTERNO
         # -------------------------------
+        box_width = 4 * cm
+        box_height = 6.3 * cm
+
+        x_box = (page_width - box_width) / 2
+        y_box = (page_height - box_height) / 2
+
         c.setLineWidth(0.7)
         c.rect(x_box, y_box, box_width, box_height)
-        
+
         # -------------------------------
         # 🔠 TEXTOS SUPERIORES
         # -------------------------------
         c.setFont("Helvetica-Bold", 8)
-        
+
         c.drawCentredString(
             page_width / 2,
             y_box + box_height - 0.6 * cm,
@@ -82,7 +88,6 @@ def generar_pdf(df):
             y_box + box_height - 1.1 * cm,
             f"SUB-LOTE: {sublote}"
         )
-
 
         # -------------------------------
         # 🔲 QR
@@ -99,10 +104,9 @@ def generar_pdf(df):
         )
 
         # -------------------------------
+        # 🔻 TEXTO INFERIOR
         # -------------------------------
-        # 🔻 TEXTO INFERIOR (AJUSTADO)
-        # -------------------------------
-        c.setFont("Helvetica-Bold", 7)
+              c.setFont("Helvetica-Bold", 7)
         
         planta_txt = str(planta).zfill(3)
         
