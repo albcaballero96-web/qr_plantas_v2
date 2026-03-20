@@ -106,7 +106,7 @@ def generar_pdf(df):
         # -------------------------------
         # 🔻 TEXTO INFERIOR
         # -------------------------------
-              c.setFont("Helvetica-Bold", 7)
+        c.setFont("Helvetica-Bold", 7)
         
         planta_txt = str(planta).zfill(3)
         
