@@ -60,7 +60,7 @@ def generar_pdf(df):
         c.drawCentredString(
             page_width/2,
             page_height - 0.5*cm,
-            f"{campana} | LOTE: {lote} | SUB-LT: {sublote}"
+            f"{campana} | LOTE: {lote} | SUB-LOTE: {sublote}"
         )
 
         c.drawInlineImage(
@@ -76,7 +76,7 @@ def generar_pdf(df):
         c.drawCentredString(
             page_width/2,
             0.6*cm,
-            f"BLOQUE: {bloque} | N° PL: {planta_txt}"
+            f"BLOQUE: {bloque} | N° PLANTA: {planta_txt}"
         )
 
         c.showPage()
