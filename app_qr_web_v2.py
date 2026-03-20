@@ -1,25 +1,32 @@
-import streamlit as st 
-import pandas as pd 
-import qrcode from reportlab.pdfgen 
-import canvas from reportlab.lib.units 
-import cm from PIL 
-import Image 
-import io 
-import tempfile 
+import streamlit as st
+import pandas as pd
+import qrcode
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import cm
+from PIL import Image
+import io
+import tempfile
 
-page_width = 5 * cm 
-page_height = 7.5 * cm 
-
-
-def generar_codigo(campana, lote, sublote, bloque, planta, zona): 
-    
-    lote = str(lote).zfill(5) 
-    bloque = str(bloque).zfill(2) 
-    planta = str(planta).zfill(3) 
-    
-    return f"{campana}{lote}{sublote}{bloque}{planta}{zona}" 
+# Tamaño de la etiqueta (ANCHO x ALTO)
+page_width = 5 * cm
+page_height = 7.5 * cm
 
 
+# -------------------------------
+# 🔢 FUNCIÓN PARA GENERAR CÓDIGO
+# -------------------------------
+def generar_codigo(campana, lote, sublote, bloque, planta, zona):
+
+    lote = str(lote).zfill(5)
+    bloque = str(bloque).zfill(2)
+    planta = str(planta).zfill(3)
+
+    return f"{campana}{lote}{sublote}{bloque}{planta}{zona}"
+
+
+# -------------------------------
+# 📄 GENERAR PDF
+# -------------------------------
 def generar_pdf(df):
 
     temp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
@@ -28,11 +35,11 @@ def generar_pdf(df):
 
     for _, row in df.iterrows():
 
-        campana = str(row["CAMPAÑA"])
-        lote = str(row["LOTE"])
-        sublote = str(row["SUB_LOTE"])
+        campana = str(row["CAMPAÑA"]).strip()
+        lote = str(row["LOTE"]).strip()
+        sublote = str(row["SUB_LOTE"]).strip()
         bloque = row["BLOQUE"]
-        zona = str(row["ZONA"])
+        zona = str(row["ZONA"]).strip()
         planta = row["PLANTA"]
 
         codigo = generar_codigo(
@@ -44,6 +51,7 @@ def generar_pdf(df):
             zona
         )
 
+        # Generar QR
         qr = qrcode.make(codigo)
 
         buffer = io.BytesIO()
@@ -61,11 +69,11 @@ def generar_pdf(df):
         x_box = (page_width - box_width) / 2
         y_box = (page_height - box_height) / 2
 
-        # Dibujar recuadro
+        c.setLineWidth(1.5)
         c.rect(x_box, y_box, box_width, box_height)
 
         # -------------------------------
-        # 🔠 TEXTOS SUPERIORES (2 líneas)
+        # 🔠 TEXTOS SUPERIORES
         # -------------------------------
         c.setFont("Helvetica-Bold", 8)
 
@@ -89,8 +97,8 @@ def generar_pdf(df):
 
         c.drawInlineImage(
             img,
-            page_width/2 - img_width/2,
-            y_box + (box_height - img_height)/2 - 0.2*cm,
+            page_width / 2 - img_width / 2,
+            y_box + (box_height - img_height) / 2 - 0.2 * cm,
             img_width,
             img_height
         )
@@ -111,3 +119,43 @@ def generar_pdf(df):
     c.save()
 
     return temp_pdf.name
+
+
+# -------------------------------
+# 🌐 INTERFAZ STREAMLIT
+# -------------------------------
+st.title("Generador de QR para Plantas")
+
+archivo = st.file_uploader("Subir archivo Excel", type=["xlsx"])
+
+if archivo:
+
+    df = pd.read_excel(archivo)
+
+    # Limpiar nombres de columnas (evita errores)
+    df.columns = df.columns.str.strip().str.upper()
+
+    # Validar columnas necesarias
+    columnas_necesarias = ["CAMPAÑA", "LOTE", "SUB_LOTE", "BLOQUE", "ZONA", "PLANTA"]
+
+    faltantes = [col for col in columnas_necesarias if col not in df.columns]
+
+    if faltantes:
+        st.error(f"Faltan columnas en el Excel: {faltantes}")
+        st.stop()
+
+    st.write("Vista previa de los datos")
+    st.dataframe(df)
+
+    if st.button("Generar QR"):
+
+        pdf = generar_pdf(df)
+
+        with open(pdf, "rb") as f:
+
+            st.download_button(
+                "Descargar PDF",
+                f,
+                file_name="QR_PLANTAS.pdf",
+                mime="application/pdf"
+            )
