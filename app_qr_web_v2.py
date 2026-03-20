@@ -1,3 +1,25 @@
+import streamlit as st 
+import pandas as pd 
+import qrcode from reportlab.pdfgen 
+import canvas from reportlab.lib.units 
+import cm from PIL 
+import Image 
+import io 
+import tempfile 
+
+page_width = 5 * cm 
+page_height = 7.5 * cm 
+
+
+def generar_codigo(campana, lote, sublote, bloque, planta, zona): 
+    
+    lote = str(lote).zfill(5) 
+    bloque = str(bloque).zfill(2) 
+    planta = str(planta).zfill(3) 
+    
+    return f"{campana}{lote}{sublote}{bloque}{planta}{zona}" 
+
+
 def generar_pdf(df):
 
     temp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
