@@ -73,19 +73,34 @@ def generar_pdf(df):
         c.rect(x_box, y_box, box_width, box_height)
 
         # -------------------------------
-        # 🔠 TEXTOS SUPERIORES
+        # 🔵 CÍRCULO DE PERFORACIÓN
         # -------------------------------
+        radio = 0.25 * cm  # diámetro = 0.5 cm
+
+        c.circle(
+            page_width / 2,
+            y_box + box_height - radio - 0.2 * cm,
+            radio
+        )
+
+        # -------------------------------
+        # 🔠 CONTENIDO (AJUSTADO HACIA ABAJO)
+        # -------------------------------
+        top_margin = 1.5 * cm
+        y_top = y_box + box_height - top_margin
+
+        # Texto superior
         c.setFont("Helvetica-Bold", 8)
 
         c.drawCentredString(
             page_width / 2,
-            y_box + box_height - 0.6 * cm,
+            y_top,
             f"{campana} | LOTE: {lote}"
         )
-        
+
         c.drawCentredString(
             page_width / 2,
-            y_box + box_height - 1.1 * cm,
+            y_top - 0.45 * cm,
             f"SUB-LOTE: {sublote}"
         )
 
@@ -95,10 +110,12 @@ def generar_pdf(df):
         img_width = 3.6 * cm
         img_height = 3.6 * cm
 
+        qr_y = y_top - 0.45 * cm - img_height - 0.2 * cm
+
         c.drawInlineImage(
             img,
             page_width / 2 - img_width / 2,
-            y_box + (box_height - img_height) / 2 - 0.2 * cm,
+            qr_y,
             img_width,
             img_height
         )
@@ -107,12 +124,12 @@ def generar_pdf(df):
         # 🔻 TEXTO INFERIOR
         # -------------------------------
         c.setFont("Helvetica-Bold", 7)
-        
+
         planta_txt = str(planta).zfill(3)
-        
+
         c.drawCentredString(
             page_width / 2,
-            y_box + 0.5 * cm,
+            qr_y - 0.35 * cm,
             f"BLOQUE: {bloque} | N° PLANTA: {planta_txt}"
         )
 
@@ -134,10 +151,8 @@ if archivo:
 
     df = pd.read_excel(archivo)
 
-    # Limpiar nombres de columnas (evita errores)
     df.columns = df.columns.str.strip().str.upper()
 
-    # Validar columnas necesarias
     columnas_necesarias = ["CAMPAÑA", "LOTE", "SUB_LOTE", "BLOQUE", "ZONA", "PLANTA"]
 
     faltantes = [col for col in columnas_necesarias if col not in df.columns]
